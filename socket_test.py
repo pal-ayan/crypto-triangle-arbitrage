@@ -15,7 +15,7 @@ def on_message(response):
     print(response.data)
 
 # leave a channel
-# sio.emit('leave', { 'channelName' : channelName })
+sio.emit('leave', { 'channelName' : channelName })
 
 '''
 from websocket import create_connection
