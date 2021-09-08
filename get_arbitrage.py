@@ -1,5 +1,7 @@
 import numpy as np
 from datetime import datetime
+from order import order
+from time import sleep
 
 class arbitrage:
 
@@ -10,6 +12,7 @@ class arbitrage:
         self.t_markets_df = master.t_markets_df
         self.call = master.call
         self.slack = master.slack
+        self.o = order(master)
         self.initial_quantity = {
             'USDT':0,
             'INR': 4000,
@@ -30,69 +33,66 @@ class arbitrage:
             'USDC': 0,
             'TUSD': 0,
         }
+        self.market_pair_dict = {}
+        self.market_quantity_dict = {}
+        self.sell_market_symbol = None
 
 
 
     def find(self, set_paths):
-        #df = self.call.get_ticker()
         for ls in set_paths:
             base_currency = ls[0]
             base_quantity = self.initial_quantity[base_currency]
             if base_quantity == 0:
                 continue
             ls_pairs = []
-            ls_price = []
+            ls_order_pairs = []
             ls_quantity = []
             for index, elem in enumerate(ls):
                 if (index+1 < len(ls) and index - 1 >= 0):
                     prev_el = str(ls[index - 1])
                     curr_el = str(elem)
                     market = curr_el + prev_el
-                    #new_df = df.loc[df['market'] == market]
-                    #price = new_df['last_price'].values[0]
-                    #ls_price.append(price)
                     ls_pairs.append(market)
+                    this_df = self.markets_df.loc[self.markets_df['coindcx_name'] == market]
+                    self.market_pair_dict[market] = this_df['pair'].values[0]
                 if index + 1 >= len(ls):
                     curr = elem
                     prev = ls[index -1]
                     next = ls[0]
                     market = curr + prev
-                    #new_df = df.loc[df['market'] == market]
-                    #price = new_df['last_price'].values[0]
-                    #ls_price.append(price)
                     ls_pairs.append(market)
+                    this_df = self.markets_df.loc[self.markets_df['coindcx_name'] == market]
+                    self.market_pair_dict[market] = this_df['pair'].values[0]
                     market = curr + next
-                    #new_df = df.loc[df['market'] == market]
-                    #price = new_df['last_price'].values[0]
-                    #ls_price.append(price)
                     ls_pairs.append(market)
-            #print(ls_pairs)
-            #print(ls_price)
+                    this_df = self.markets_df.loc[self.markets_df['coindcx_name'] == market]
+                    self.market_pair_dict[market] = this_df['pair'].values[0]
 
             final_quantity= 0
             initial_price = 0
-            #current_cycle_start = datetime.now()
+
             for index, pair in enumerate(ls_pairs):
                 if (index + 1 < len(ls) and index - 1 >= 0):
                     p, q = self.get_quantity(ls_quantity[index-1], pair)
                     ls_quantity.append(q)
+                    self.market_quantity_dict[pair] = q
                     continue
                 if index + 1 >= len(ls):
                     qty = ls_quantity[-1] * float(self.call.get_latest_price(pair))
                     final_quantity = qty - 0.001 * qty
+                    self.sell_market_symbol = pair
                 else:
                     p, q = self.get_quantity(base_quantity, pair)
                     ls_quantity.append(q)
+                    self.market_quantity_dict[pair] = q
                     initial_price = p
-            '''
-            current_cycle_end = datetime.now() - current_cycle_start
-            self.l.log_info('current inner cycle completion took -> %s' % current_cycle_end)
-            print('current inner cycle completion took -> %s' % current_cycle_end)
-            '''
-            #print(ls_quantity)
             initial_quantity = float(ls_quantity[0]) * initial_price
             initial_quantity = initial_quantity + 0.001 * initial_quantity
             if final_quantity > initial_quantity:
+
+                self.place_orders()
+
                 percent = ((final_quantity - initial_quantity) / initial_quantity) * 100
                 #if percent > 0.1:
                 """
@@ -139,3 +139,33 @@ class arbitrage:
         else:
             return True
 
+    def place_orders(self):
+        prev_order = None
+        for key in self.market_pair_dict:
+            if key == self.sell_market_symbol:
+                side = 'sell'
+            else:
+                side = 'buy'
+
+            create = True
+            order_id = None
+            while True:
+                if create:
+                    order_id = self.o.place_order(side, self.market_pair_dict[key], key, self.market_quantity_dict[key], prev_order)
+                    create=False
+                sleep(1)
+                status = self.get_order_status(order_id)
+                if 'rejected' == status:
+                    create = True
+                    continue
+                if 'filled' == status:
+                    prev_order = order_id
+                    break
+        pass
+
+    def get_order_status(self, order_id):
+        if order_id is None:
+            return 'rejected'
+        df = self.call.get_order_status(order_id)
+        status = df['status'].values[0]
+        return status

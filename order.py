@@ -125,9 +125,13 @@ class order:
             self.store_buy_order(pair, df)
         else:
             self.store_sell_order(pair, df, ls_buy_ids)
+        return order_id
 
-    def update_order_status(self):
-        ls_ids = self.get_open_orders()
+    def update_order_status(self, ids=None):
+        if ids is None:
+            ls_ids = self.get_open_orders()
+        else:
+            ls_ids = ids
         for orderid in ls_ids:
             df = self._call.get_order_status(orderid)
             if os.path.exists(os.path.realpath('.') + "/csv/order_status.csv"):
