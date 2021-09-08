@@ -285,5 +285,7 @@ cython_debug/
 /json/
 /csv/
 /key/
+/db/*.db-shm
+/db/*.db-wal
 
 env/app.env
