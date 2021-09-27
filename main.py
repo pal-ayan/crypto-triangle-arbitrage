@@ -4,7 +4,7 @@ from time import sleep
 from log import log
 from master import master
 from find_path import path
-from get_arbitrage import arbitrage
+from perform_arbitrage import arbitrage
 import csv
 import time
 
