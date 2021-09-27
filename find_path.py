@@ -10,6 +10,8 @@ class path:
         self.master_list = set()
         self.market_pair_dict = {}
         self.master_ls_pairs = set()
+        self.excluded_currency_list = ['USDC', 'TUSD']
+        self.exclusive_market_list = set()
 
 
     def get_path(self, currency, ls_current_path):
@@ -87,13 +89,23 @@ class path:
                         ls_pairs.append(market)
 
                 #print(ls_pairs)
-                compatible = True
-                for ls in ls_pairs:
-                    if not self.has_market_order(ls):
-                        compatible = False
-                        break
-                if compatible:
-                    self.master_ls_pairs.add(tuple(ls_pairs))
+                if not self.has_excluded_currency(ls_pairs):
+                    compatible = True
+                    for ls in ls_pairs:
+                        if not self.has_market_order(ls):
+                            compatible = False
+                            break
+                        self.exclusive_market_list.add(ls)
+                    if compatible:
+                        self.master_ls_pairs.add(tuple(ls_pairs))
+
+
+    def has_excluded_currency(self, ls):
+        for elm in ls:
+            for excluded_currency in self.excluded_currency_list:
+                if excluded_currency in elm:
+                    return True
+        return False
 
     def has_market_order(self, market):
         df = self.t_markets_df[self.t_markets_df['coindcx_name'] == market]

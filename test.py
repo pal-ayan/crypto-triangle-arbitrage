@@ -29,3 +29,7 @@ with open('final_path_test.txt', 'w') as the_file:
     for ls in p.master_ls_pairs:
         val = ','.join(ls)
         the_file.write(val + '\n')
+print(p.exclusive_market_list)
+with open('markets.txt', 'w') as the_file:
+    for val in p.exclusive_market_list:
+        the_file.write(val + '\n')

@@ -165,6 +165,11 @@ class call_api():
         df = df.loc[df['market'] == market]
         return df['last_price'].values[0]
 
+    def get_current_price_with_timestamp(self, market, df=None):
+        df = self.get_ticker() if df is None else df
+        df = df.loc[df['market'] == market]
+        return float(df['last_price'].values[0]), df['timestamp'].values[0]
+
     def get_latest_price(self, market, df=None):
         df = self.get_latest_ticker() if df is None else df
         df = df.loc[df['market'] == market]

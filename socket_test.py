@@ -1,27 +1,22 @@
-
 import socketio
 
+def my_headers():
+    return {"origin": "*"}
 
-channelName = 'B-SNM_BTC'
-socketEndpoint = 'wss://stream.coindcx.com'
-sio = socketio.Client()
+#socketEndpoint = 'https://stream.coindcx.com (https://stream.coindcx.com/)'
+socketEndpoint = 'wss://stream.coindcx.com/'
+sio = socketio.Client(engineio_logger=True, logger=True)
+sio.connect(socketEndpoint)
+sio.emit('join', {'channelName': 'B-BTC_USDT'})
 
-sio.connect(socketEndpoint, transports = 'websocket')
-sio.emit('join', { 'channelName': channelName })
+@sio.event
+def connect():
+    print("I'm connected!")
 
-# Listen update on channelName
-@sio.on(channelName)
+@sio.event
+def connect_error(data):
+    print("The connection failed!")
+
+@sio.on('depth-update')
 def on_message(response):
-    print(response.data)
-
-# leave a channel
-# sio.emit('leave', { 'channelName' : channelName })
-
-'''
-from websocket import create_connection
-ws = create_connection("wss://stream.coindcx.com")
-result =  ws.recv()
-print ("Received '%s'" % result)
-ws.close()
-'''
-
+    print(response['data'])

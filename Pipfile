@@ -8,6 +8,8 @@ numpy = "*"
 pandas = "*"
 python-dotenv = "*"
 slackclient = "*"
+selenium = "*"
+python-socketio = {extras = ["websocket"], version = "*"}
 
 [dev-packages]
 
