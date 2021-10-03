@@ -292,3 +292,4 @@ env/app.env
 /processes/
 /latest_price/
 /txt/
+/chromedriver/
