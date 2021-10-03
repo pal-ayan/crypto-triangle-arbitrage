@@ -11,7 +11,7 @@ import sys
 def store(elm, file_name):
     #print(elm.text)
     #start_time = datetime.now()
-    file_name = os.path.realpath('.') +"/latest_price/"+file_name + ".txt"
+    file_name = "/home/murphy/Documents/repository/crypto-triangle-arbitrage/latest_price/"+file_name + ".txt"
     fileObject = open(file_name, "w")
     fileObject.write(elm.text)
     #time_diff = datetime.now() - start_time
@@ -23,23 +23,25 @@ options.add_argument("--headless")
 options.add_argument("--disable-gpu")
 #options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--no-sandbox")
+options.add_argument("--disable-notifications")
 options.add_argument(
     "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36")
 # options.headless = True
-chromedriver_path = os.path.realpath('.') + "/chromedriver/chromedriver"
+chromedriver_path = "/home/murphy/Documents/repository/crypto-triangle-arbitrage/chromedriver/chromedriver"
 driver = webdriver.Chrome(chromedriver_path, options=options)
 
 market = sys.argv[1]
-#print('Input argument is '+market)
+print('Input argument is '+market)
 
 driver.get("https://coindcx.com/trade/"+market)
 
 try:
-    myElem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@class='latest-trade-price']")))
+    myElem = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, "//span[@class='latest-trade-price']")))
 except TimeoutException:
+    print("timeout for market "+market)
     exit(-1)
 
-#sleep(10)
+print("starting price capture "+market)
 
 while True:
     elm = driver.find_element_by_xpath("//span[@class='latest-trade-price']")

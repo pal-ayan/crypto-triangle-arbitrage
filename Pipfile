@@ -10,6 +10,7 @@ python-dotenv = "*"
 slackclient = "*"
 selenium = "*"
 python-socketio = {extras = ["websocket"], version = "*"}
+requests = "*"
 
 [dev-packages]
 

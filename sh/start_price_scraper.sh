@@ -5,4 +5,5 @@ while read -r line; do
     	#echo "Name read from file - $name"
     	/home/murphy/.local/bin/pipenv run python /home/murphy/Documents/repository/crypto-triangle-arbitrage/scrape_website.py $name &
 	    echo $! > "/home/murphy/Documents/repository/crypto-triangle-arbitrage/processes/${name}_process.txt"
+	    sleep 5
 done < "$filename"
